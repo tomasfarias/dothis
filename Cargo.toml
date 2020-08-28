@@ -1,0 +1,12 @@
+[package]
+name = "todoist-cli"
+version = "0.1.0"
+authors = ["Tomás Farías <tomasfariassantana@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+clap = "~2.33"
+serde_json = "~1.0"
+serde = { version = "~1.0", features = ["derive"] }
+reqwest = { version = "~0.10", features = ["json"] }
+tokio = { version = "0.2", features = ["full"] }
