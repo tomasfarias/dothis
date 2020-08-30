@@ -1,12 +1,13 @@
-use std::time::Duration;
+use std::collections::BTreeMap as Map;
 use std::error::Error;
 use std::fmt;
+use std::time::Duration;
 
-use serde::{ self, Serialize };
+use reqwest::{self, Client};
+use serde::{self, Deserialize, Serialize};
 use serde_json;
-use reqwest::{ self, Client };
 
-use super::resource::{ Project, Resource };
+use super::resource::{Item, Project, Resource};
 
 pub struct TodoistClient {
     token: String,
@@ -17,7 +18,7 @@ pub struct TodoistClient {
 impl TodoistClient {
     pub fn new(token: &str) -> TodoistClient {
         let timeout = Duration::new(10, 0);
-        TodoistClient{
+        TodoistClient {
             token: token.to_owned(),
             client: Client::new(),
             url: "https://api.todoist.com/sync/v8/sync".to_owned(),
@@ -25,17 +26,33 @@ impl TodoistClient {
     }
 
     #[tokio::main]
-    pub async fn get_resource(&self, resource_types: Vec<String>) -> Result<Project, RequestError> {
+    pub async fn get_resource(
+        &self,
+        resource_types: Vec<String>,
+    ) -> Result<TodoistResponse, RequestError> {
         let query = TodoistQuery::new(&self.token, resource_types);
-        let resource = self.client.get(&self.url)
+        let response: TodoistResponse = self
+            .client
+            .get(&self.url)
             .query(&query)
             .send()
             .await?
-            .json::<Project>()
+            .json()
             .await?;
 
-        Ok(resource)
+        Ok(response)
     }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TodoistResponse {
+    #[serde(default)]
+    projects: Option<Vec<Project>>,
+    #[serde(default)]
+    items: Option<Vec<Item>>,
+    full_sync: bool,
+    temp_id_mapping: Map<String, u32>,
+    sync_token: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -47,13 +64,12 @@ pub struct TodoistQuery {
 
 impl TodoistQuery {
     fn new(token: &str, resource_types: Vec<String>) -> TodoistQuery {
-        TodoistQuery{
+        TodoistQuery {
             token: token.to_owned(),
             sync_token: "*".to_owned(),
             resource_types: serde_json::to_string(&resource_types).unwrap(),
         }
     }
-
 }
 
 #[derive(Debug, Serialize)]
@@ -64,7 +80,7 @@ pub struct TodoistForm {
 
 impl TodoistForm {
     fn new(token: &str, commands: Vec<String>) -> TodoistForm {
-        TodoistForm{
+        TodoistForm {
             token: token.to_owned(),
             commands: serde_json::to_string(&commands).unwrap(),
         }
@@ -88,7 +104,6 @@ impl From<reqwest::Error> for RequestError {
         RequestError::RequestError(err)
     }
 }
-
 
 impl Error for RequestError {
     fn cause(&self) -> Option<&Error> {
