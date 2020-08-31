@@ -1,18 +1,21 @@
-extern crate clap;
-use clap::{App, Arg, SubCommand};
+use std::env;
 
-mod api;
-use api::client::TodoistClient;
-use api::resource::{Item, Project};
+extern crate clap;
+use clap::{App, AppSettings, Arg, SubCommand};
+
+use todoist::api::client::TodoistClient;
+use todoist::api::resource::{Item, Label, Note, Project};
 
 fn main() {
     let matches = App::new("Todoist CLI")
         .version("1.0")
         .author("Tomas Farias")
         .about("CLI for Todoist")
+        .setting(AppSettings::SubcommandRequiredElseHelp)
+        .setting(AppSettings::ArgRequiredElseHelp)
         .arg(
             Arg::with_name("token")
-                .required(true)
+                .required(false)
                 .takes_value(true)
                 .long("token")
                 .help("Todoist token"),
@@ -38,11 +41,20 @@ fn main() {
         )
         .get_matches();
 
-    let token = matches.value_of("token").unwrap();
+    let token = match matches.value_of("token") {
+        Some(t) => t.to_string(),
+        None => {
+            if env::var("TODOIST_API_TOKEN").is_err() {
+                println!("error: Required Todoist API token was not provided");
+                return;
+            };
+            env::var("TODOIST_API_TOKEN").unwrap().to_string()
+        }
+    };
 
     match matches.subcommand_name() {
         Some("get") => {
-            let client = TodoistClient::new(token);
+            let client = TodoistClient::new(&token);
             let resource = matches
                 .subcommand_matches("get")
                 .unwrap()
@@ -68,11 +80,12 @@ fn main() {
                 }
                 _ => {
                     println!("error: invalid resource {:?}", resource);
-                    return;
                 }
             }
         }
-        None => println!("No subcommand was used"),
-        _ => println!("Should never get here"),
+        Some(other) => {
+            println!("error: Invalid subcommand {}", other);
+        }
+        None => println!("error: No subcommand was used"),
     }
 }

@@ -1,5 +1,5 @@
 [package]
-name = "todoist-cli"
+name = "todoist"
 version = "0.1.0"
 authors = ["Tomás Farías <tomasfariassantana@gmail.com>"]
 edition = "2018"

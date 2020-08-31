@@ -7,7 +7,7 @@ use reqwest::{self, Client};
 use serde::{self, Deserialize, Serialize};
 use serde_json;
 
-use super::resource::{Item, Project, Resource};
+use crate::api::resource::{Item, Label, Note, Project};
 
 pub struct TodoistClient {
     token: String,
@@ -50,6 +50,10 @@ pub struct TodoistResponse {
     projects: Option<Vec<Project>>,
     #[serde(default)]
     items: Option<Vec<Item>>,
+    #[serde(default)]
+    notes: Option<Vec<Note>>,
+    #[serde(default)]
+    labels: Option<Vec<Label>>,
     full_sync: bool,
     temp_id_mapping: Map<String, u32>,
     sync_token: String,
