@@ -4,7 +4,7 @@ extern crate clap;
 use clap::{App, AppSettings, Arg, SubCommand};
 
 use todoist::api::client::TodoistClient;
-use todoist::api::resource::{Item, Label, Note, Project};
+use todoist::api::resource::{Filter, Item, Label, Note, Project, ProjectNote, Reminder};
 
 fn main() {
     let matches = App::new("Todoist CLI")
