@@ -1,6 +1,8 @@
 use serde::{self, Deserialize, Serialize};
 use std::collections::BTreeMap as Map;
 
+use super::bool_from_int;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Note {
     id: u32,
@@ -13,6 +15,21 @@ pub struct Note {
     content: String,
     file_attachment: FileAttachment,
     uids_to_notify: Vec<u32>,
+    #[serde(with = "bool_from_int")]
+    is_deleted: bool,
+    posted: String,
+    reactions: Map<String, Vec<u32>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ProjectNote {
+    id: u32,
+    posted_uid: u32,
+    project_id: u32,
+    content: String,
+    file_attachment: FileAttachment,
+    uids_to_notify: Vec<u32>,
+    #[serde(with = "bool_from_int")]
     is_deleted: bool,
     posted: String,
     reactions: Map<String, Vec<u32>>,

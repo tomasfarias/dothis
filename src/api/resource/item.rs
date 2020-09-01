@@ -35,6 +35,25 @@ pub struct Item {
     date_added: String,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Reminder {
+    id: u32,
+    notify_uid: u32,
+    item_uid: u32,
+    service: String,
+    #[serde(rename = "type")]
+    type_: String,
+    due: DueDate,
+    mm_offset: Option<i32>,
+    name: String,
+    loc_lat: String,
+    loc_long: String,
+    loc_trigger: String,
+    radius: i32,
+    #[serde(with = "bool_from_int")]
+    is_deleted: bool,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DueDate {
     date: String,
