@@ -47,22 +47,22 @@ impl TodoistClient {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TodoistResponse {
     #[serde(default)]
-    projects: Option<Vec<Project>>,
+    pub projects: Option<Vec<Project>>,
     #[serde(default)]
-    items: Option<Vec<Item>>,
+    pub items: Option<Vec<Item>>,
     #[serde(default)]
-    notes: Option<Vec<Note>>,
+    pub notes: Option<Vec<Note>>,
     #[serde(default)]
-    labels: Option<Vec<Label>>,
+    pub labels: Option<Vec<Label>>,
     #[serde(default)]
-    filters: Option<Vec<Filter>>,
+    pub filters: Option<Vec<Filter>>,
     #[serde(default)]
-    project_notes: Option<Vec<ProjectNote>>,
+    pub project_notes: Option<Vec<ProjectNote>>,
     #[serde(default)]
-    reminders: Option<Vec<Reminder>>,
-    full_sync: bool,
-    temp_id_mapping: Map<String, u32>,
-    sync_token: String,
+    pub reminders: Option<Vec<Reminder>>,
+    pub full_sync: bool,
+    pub temp_id_mapping: Map<String, u32>,
+    pub sync_token: String,
 }
 
 #[derive(Debug, Serialize)]
