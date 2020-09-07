@@ -5,41 +5,41 @@ use super::bool_from_int;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Note {
-    id: u32,
-    legacy_id: Option<u32>,
-    posted_uid: u32,
-    item_id: u32,
-    legacy_item_id: Option<u32>,
-    project_id: u32,
-    legacy_project_id: Option<u32>,
-    content: String,
-    file_attachment: FileAttachment,
-    uids_to_notify: Vec<u32>,
+    pub id: u32,
+    pub legacy_id: Option<u32>,
+    pub posted_uid: u32,
+    pub item_id: u32,
+    pub legacy_item_id: Option<u32>,
+    pub project_id: u32,
+    pub legacy_project_id: Option<u32>,
+    pub content: String,
+    pub file_attachment: FileAttachment,
+    pub uids_to_notify: Vec<u32>,
     #[serde(with = "bool_from_int")]
-    is_deleted: bool,
-    posted: String,
-    reactions: Map<String, Vec<u32>>,
+    pub is_deleted: bool,
+    pub posted: String,
+    pub reactions: Map<String, Vec<u32>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProjectNote {
-    id: u32,
-    posted_uid: u32,
-    project_id: u32,
-    content: String,
-    file_attachment: FileAttachment,
-    uids_to_notify: Vec<u32>,
+    pub id: u32,
+    pub posted_uid: u32,
+    pub project_id: u32,
+    pub content: String,
+    pub file_attachment: FileAttachment,
+    pub uids_to_notify: Vec<u32>,
     #[serde(with = "bool_from_int")]
-    is_deleted: bool,
-    posted: String,
-    reactions: Map<String, Vec<u32>>,
+    pub is_deleted: bool,
+    pub posted: String,
+    pub reactions: Map<String, Vec<u32>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileAttachment {
-    file_name: String,
-    file_size: u32,
-    file_type: String,
-    file_url: String,
-    upload_stae: String,
+    pub file_name: String,
+    pub file_size: u32,
+    pub file_type: String,
+    pub file_url: String,
+    pub upload_stae: String,
 }

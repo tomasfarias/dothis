@@ -42,7 +42,7 @@ fn main() {
         .borders(' ')
         .separators(
             &[format::LinePosition::Title],
-            format::LineSeparator::new('_', ' ', ' ', ' '),
+            format::LineSeparator::new('-', ' ', ' ', ' '),
         )
         .build();
     table.set_format(tbl_format);
@@ -69,12 +69,17 @@ fn main() {
             let response = client.get_resource(resource_types).unwrap();
 
             if let Some(items) = response.items {
-                table.set_titles(row!["Project", "Due", "Content"]);
+                table.set_titles(row!["Project", "Added", "Due", "Content"]);
 
                 for project in response.projects.unwrap().iter() {
                     for task in items.iter() {
                         if task.project_id == project.id {
-                            table.add_row(row![project.name, task.due.string, task.content]);
+                            table.add_row(row![
+                                project.name,
+                                task.date_added,
+                                task.due.string,
+                                task.content
+                            ]);
                         }
                     }
                 }
@@ -86,11 +91,42 @@ fn main() {
         }
         Some("labels") | Some("label") => {
             let resource_types = vec!["labels".to_owned()];
-            println!("{:?}", client.get_resource(resource_types).unwrap());
+            let response = client.get_resource(resource_types).unwrap();
+
+            if let Some(labels) = response.labels {
+                table.set_titles(row!["Name", "Favorite", "Deleted"]);
+
+                for label in labels.iter() {
+                    table.add_row(row![label.name, label.is_favorite, label.is_deleted]);
+                }
+
+                table.printstd();
+            } else {
+                println!("No labels found");
+            }
         }
         Some("note") | Some("notes") => {
-            let resource_types = vec!["notes".to_owned()];
-            println!("{:?}", client.get_resource(resource_types).unwrap());
+            let resource_types = vec!["notes".to_owned(), "projects".to_owned()];
+            let response = client.get_resource(resource_types).unwrap();
+
+            if let Some(notes) = response.notes {
+                table.set_titles(row!["Project", "Task", "Content"]);
+                let tasks = response.items.unwrap();
+                let projects = response.projects.unwrap();
+                // There has to be a better way to do this
+                for project in projects.iter() {
+                    for task in tasks.iter() {
+                        for note in notes.iter() {
+                            if note.project_id == project.id && note.item_id == task.id {
+                                table.add_row(row![project.name, task.id, note.content]);
+                            }
+                        }
+                    }
+                }
+                table.printstd();
+            } else {
+                println!("No notes found");
+            }
         }
         Some(other) => {
             println!("error: invalid resource {:?}", other);

@@ -5,12 +5,12 @@ use super::optional_bool_from_int;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Label {
-    id: u32,
-    name: String,
-    color: u8,
-    item_order: u32,
+    pub id: u32,
+    pub name: String,
+    pub color: u8,
+    pub item_order: u32,
     #[serde(with = "bool_from_int")]
-    is_deleted: bool,
+    pub is_deleted: bool,
     #[serde(with = "bool_from_int")]
-    is_favorite: bool,
+    pub is_favorite: bool,
 }
