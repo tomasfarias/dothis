@@ -1,7 +1,7 @@
 [package]
-name = "todoist"
+name = "dothis"
 version = "0.1.0"
-authors = ["Tomás Farías <tomasfariassantana@gmail.com>"]
+authors = ["Tomás Farías <tomas@tomasfarias.dev>"]
 edition = "2018"
 
 [dependencies]

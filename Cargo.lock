@@ -191,6 +191,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "dothis"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "prettytable-rs",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "dtoa"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1027,18 +1039,6 @@ name = "tinyvec"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "53953d2d3a5ad81d9f844a32f14ebb121f50b650cd59d0ee2a07cf13c617efed"
-
-[[package]]
-name = "todoist"
-version = "0.1.0"
-dependencies = [
- "clap",
- "prettytable-rs",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
-]
 
 [[package]]
 name = "tokio"
