@@ -6,8 +6,11 @@ use std::time::Duration;
 use reqwest::{self, Client};
 use serde::{self, Deserialize, Serialize};
 use serde_json;
+use uuid::Uuid;
 
-use crate::api::resource::{Filter, Item, Label, Note, Project, ProjectNote, Reminder};
+use crate::api::resource::{
+    Filter, Item, Label, NewProject, Note, Project, ProjectNote, Reminder, ToJson,
+};
 
 pub struct TodoistClient {
     token: String,
@@ -26,11 +29,31 @@ impl TodoistClient {
     }
 
     #[tokio::main]
-    pub async fn get_resource(
+    pub async fn get_resources(
         &self,
         resource_types: Vec<String>,
     ) -> Result<TodoistResponse, TodoistApiError> {
-        let query = TodoistQuery::new(&self.token, resource_types);
+        let query = TodoistQuery::get(&self.token, resource_types);
+        let response: TodoistResponse = self
+            .client
+            .get(&self.url)
+            .query(&query)
+            .send()
+            .await?
+            .json()
+            .await?;
+
+        Ok(response)
+    }
+
+    #[tokio::main]
+    pub async fn sync_commands(
+        &self,
+        resource_types: Vec<String>,
+        sync_token: &str,
+        commands: Vec<TodoistCommand>,
+    ) -> Result<TodoistResponse, TodoistApiError> {
+        let query = TodoistQuery::command(&self.token, resource_types, sync_token, commands);
         let response: TodoistResponse = self
             .client
             .get(&self.url)
@@ -70,14 +93,30 @@ pub struct TodoistQuery {
     token: String,
     sync_token: String,
     resource_types: String,
+    commands: Option<String>,
 }
 
 impl TodoistQuery {
-    fn new(token: &str, resource_types: Vec<String>) -> TodoistQuery {
+    fn get(token: &str, resource_types: Vec<String>) -> TodoistQuery {
         TodoistQuery {
             token: token.to_owned(),
             sync_token: "*".to_owned(),
             resource_types: serde_json::to_string(&resource_types).unwrap(),
+            commands: None,
+        }
+    }
+
+    fn command(
+        token: &str,
+        resource_types: Vec<String>,
+        sync_token: &str,
+        commands: Vec<TodoistCommand>,
+    ) -> TodoistQuery {
+        TodoistQuery {
+            token: token.to_owned(),
+            sync_token: sync_token.to_owned(),
+            resource_types: serde_json::to_string(&resource_types).unwrap(),
+            commands: Some(serde_json::to_string(&commands).unwrap()),
         }
     }
 }
@@ -89,10 +128,34 @@ pub struct TodoistForm {
 }
 
 impl TodoistForm {
-    fn new(token: &str, commands: Vec<String>) -> TodoistForm {
+    fn new(token: &str, commands: Vec<TodoistCommand>) -> TodoistForm {
         TodoistForm {
             token: token.to_owned(),
             commands: serde_json::to_string(&commands).unwrap(),
+        }
+    }
+}
+
+// Represents a sync API command
+// uuid uniquely identifies the request to allow for safe retries in case of failure
+// temp_id assigns an id to a new object that can be referenced by other objects created in the same request
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TodoistCommand {
+    #[serde(rename = "type")]
+    command_type: String,
+    // args varies according to object type
+    args: serde_json::Value,
+    uuid: Uuid,
+    temp_id: Option<String>,
+}
+
+impl TodoistCommand {
+    pub fn new(resource: &impl ToJson, temp_id: Option<String>) -> Self {
+        TodoistCommand {
+            command_type: "project_add".to_string(),
+            args: resource.to_json(),
+            uuid: Uuid::new_v4(),
+            temp_id: temp_id,
         }
     }
 }

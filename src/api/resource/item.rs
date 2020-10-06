@@ -1,6 +1,6 @@
 use serde::{self, Deserialize, Serialize};
 
-use super::bool_from_int;
+use super::bool_int;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Item {
@@ -17,17 +17,17 @@ pub struct Item {
     pub child_order: i32,
     pub section_id: Option<u32>,
     pub day_order: i32,
-    #[serde(with = "bool_from_int")]
+    #[serde(with = "bool_int")]
     pub collapsed: bool,
     pub labels: Vec<u32>,
     pub added_by_uid: Option<u32>,
     pub assigned_by_uid: Option<i32>,
     pub responsible_uid: Option<i32>,
-    #[serde(with = "bool_from_int")]
+    #[serde(with = "bool_int")]
     pub checked: bool,
-    #[serde(with = "bool_from_int")]
+    #[serde(with = "bool_int")]
     pub in_history: bool,
-    #[serde(with = "bool_from_int")]
+    #[serde(with = "bool_int")]
     pub is_deleted: bool,
     pub sync_id: Option<u32>,
     pub date_completed: Option<String>,
@@ -49,7 +49,7 @@ pub struct Reminder {
     loc_long: String,
     loc_trigger: String,
     radius: i32,
-    #[serde(with = "bool_from_int")]
+    #[serde(with = "bool_int")]
     is_deleted: bool,
 }
 
