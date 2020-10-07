@@ -32,9 +32,13 @@ pub struct Project {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NewProject {
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<Color>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub child_order: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(with = "bool_int::optional")]
     pub is_favorite: Option<bool>,
 }

@@ -216,7 +216,7 @@ impl Command for AddCommand {
         let commands = vec![TodoistCommand::new(&self.new_resource, None)];
         match self
             .client
-            .sync_commands(vec!["projects".to_string()], "*", commands)
+            .sync_commands(vec!["projects".to_string()], None, commands)
         {
             Ok(response) => Ok(()),
             Err(e) => Err(DothisError::ApiError(e)),

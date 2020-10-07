@@ -14,6 +14,7 @@ mod error;
 use crate::error::DothisError;
 
 fn main() {
+    env_logger::init();
     let dothis = Dothis::new();
 
     process::exit(match dothis.run() {
