@@ -10,7 +10,7 @@ pub struct Item {
     pub project_id: u32,
     pub legay_project_id: Option<u32>,
     pub content: String,
-    pub due: DueDate,
+    pub due: Option<DueDate>,
     pub priority: i32,
     pub parent_id: Option<u32>,
     pub legacy_parent_id: Option<u32>,

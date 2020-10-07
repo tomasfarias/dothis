@@ -88,7 +88,7 @@ impl ListCommand {
                         self.table.add_row(row![
                             project.name,
                             task.date_added,
-                            task.due.string,
+                            task.due.as_ref().map_or("", |d| &d.string),
                             task.content
                         ]);
                     }

@@ -1,6 +1,6 @@
 [package]
 name = "dothis"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Tomás Farías <tomas@tomasfarias.dev>"]
 edition = "2018"
 
