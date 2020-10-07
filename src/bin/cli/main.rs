@@ -42,6 +42,7 @@ impl Dothis {
                 Arg::with_name("token")
                     .required(true)
                     .takes_value(true)
+                    .require_equals(true)
                     .long("token")
                     .short("t")
                     .env("TODOIST_API_TOKEN")
@@ -50,13 +51,17 @@ impl Dothis {
             .arg(
                 Arg::with_name("command")
                     .takes_value(true)
+                    .index(1)
+                    .required(true)
                     .default_value("list")
                     .help("command to execute")
             )
             .arg(
                 Arg::with_name("resource")
                     .takes_value(true)
-                    .default_value("tasks")
+                    .index(2)
+                    .required(true)
+                    .default_value_if("command", Some("list"), "tasks")
                     .help("resource to operate on")
             )
             .arg(
