@@ -1,6 +1,8 @@
 use serde::{self, Deserialize, Serialize};
+use serde_json::{self, json};
 
 use super::bool_int;
+use super::{CommandResource, Resource};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Item {
@@ -32,6 +34,60 @@ pub struct Item {
     pub sync_id: Option<u32>,
     pub date_completed: Option<String>,
     pub date_added: String,
+}
+
+impl Resource for Item {
+    fn resource(&self) -> String {
+        String::from("items")
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddItem {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub project_id: Option<u32>,
+    pub content: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub due: Option<DueDate>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub priority: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_id: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub child_order: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub section_id: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub day_order: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(with = "bool_int::optional")]
+    pub collapsed: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<Vec<u32>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub assigned_by_uid: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub responsible_uid: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub auto_reminder: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub auto_parse_labels: Option<bool>,
+}
+
+impl Resource for AddItem {
+    fn resource(&self) -> String {
+        String::from("items")
+    }
+}
+
+impl CommandResource for AddItem {
+    fn to_json(&self) -> serde_json::Value {
+        json!(self)
+    }
+
+    fn command(&self) -> String {
+        String::from("item_add")
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]

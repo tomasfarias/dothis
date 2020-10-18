@@ -10,7 +10,7 @@ use serde_json;
 use uuid::Uuid;
 
 use crate::api::resource::{
-    Filter, Item, Label, NewProject, Note, Project, ProjectNote, Reminder, ToJson,
+    CommandResource, Filter, Item, Label, Note, Project, ProjectNote, Reminder, Resource,
 };
 
 pub struct TodoistClient {
@@ -32,9 +32,14 @@ impl TodoistClient {
     #[tokio::main]
     pub async fn get_resources(
         &self,
-        resource_types: Vec<String>,
+        resources: Vec<&str>,
     ) -> Result<TodoistResponse, TodoistApiError> {
-        let query = TodoistQuery::get(&self.token, resource_types);
+        let mut builder = TodoistQueryBuilder::new(&self.token);
+        for resource in resources.into_iter() {
+            builder.get(&resource);
+        }
+        let query = builder.build();
+
         debug!("Sending query: {:?}", query);
         let response: TodoistResponse = self
             .client
@@ -50,13 +55,20 @@ impl TodoistClient {
     }
 
     #[tokio::main]
-    pub async fn sync_commands(
+    pub async fn sync_resources<T>(
         &self,
-        resource_types: Vec<String>,
-        sync_token: Option<String>,
-        commands: Vec<TodoistCommand>,
-    ) -> Result<TodoistResponse, TodoistApiError> {
-        let query = TodoistQuery::command(&self.token, sync_token, resource_types, commands);
+        resources: Vec<T>,
+    ) -> Result<TodoistResponse, TodoistApiError>
+    where
+        T: CommandResource + Resource,
+    {
+        let mut builder = TodoistQueryBuilder::new(&self.token);
+        for resource in resources.into_iter() {
+            // TODO: uuid and temp_id should not be hardcoded to None
+            builder.add(&resource, None, None);
+        }
+        let query = builder.build();
+
         debug!("Sending query: {:?}", query);
         let response: TodoistResponse = self
             .client
@@ -100,47 +112,8 @@ pub struct TodoistQuery {
     #[serde(skip_serializing_if = "Option::is_none")]
     sync_token: Option<String>,
     resource_types: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     commands: Option<String>,
-}
-
-impl TodoistQuery {
-    fn get(token: &str, resource_types: Vec<String>) -> TodoistQuery {
-        TodoistQuery {
-            token: token.to_owned(),
-            sync_token: Some("*".to_owned()),
-            resource_types: serde_json::to_string(&resource_types).unwrap(),
-            commands: None,
-        }
-    }
-
-    fn command(
-        token: &str,
-        sync_token: Option<String>,
-        resource_types: Vec<String>,
-        commands: Vec<TodoistCommand>,
-    ) -> TodoistQuery {
-        TodoistQuery {
-            token: token.to_owned(),
-            sync_token: sync_token,
-            resource_types: serde_json::to_string(&resource_types).unwrap(),
-            commands: Some(serde_json::to_string(&commands).unwrap()),
-        }
-    }
-}
-
-#[derive(Debug, Serialize)]
-pub struct TodoistForm {
-    token: String,
-    commands: String,
-}
-
-impl TodoistForm {
-    fn new(token: &str, commands: Vec<TodoistCommand>) -> TodoistForm {
-        TodoistForm {
-            token: token.to_owned(),
-            commands: serde_json::to_string(&commands).unwrap(),
-        }
-    }
 }
 
 // Represents a sync API command
@@ -149,20 +122,63 @@ impl TodoistForm {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TodoistCommand {
     #[serde(rename = "type")]
-    command_type: String,
+    command_string: String,
     // args varies according to object type
     args: serde_json::Value,
     uuid: Uuid,
     temp_id: Uuid,
 }
 
-impl TodoistCommand {
-    pub fn new(resource: &impl ToJson, temp_id: Option<Uuid>) -> Self {
-        TodoistCommand {
-            command_type: "project_add".to_string(),
+pub struct TodoistQueryBuilder {
+    token: String,
+    commands: Vec<String>,
+    sync_token: Option<String>,
+    resource_types: Vec<String>,
+}
+
+impl TodoistQueryBuilder {
+    pub fn new(token: &str) -> TodoistQueryBuilder {
+        TodoistQueryBuilder {
+            token: String::from(token),
+            commands: Vec::new(),
+            resource_types: Vec::new(),
+            sync_token: None,
+        }
+    }
+
+    pub fn add<'a, T: CommandResource + Resource>(
+        &'a mut self,
+        resource: &T,
+        uuid: Option<Uuid>,
+        temp_id: Option<Uuid>,
+    ) -> &'a mut TodoistQueryBuilder {
+        let command = TodoistCommand {
+            command_string: resource.command(),
             args: resource.to_json(),
-            uuid: Uuid::new_v4(),
-            temp_id: temp_id.unwrap_or(Uuid::new_v4()),
+            uuid: uuid.map_or(Uuid::new_v4(), |u| u.into()),
+            temp_id: temp_id.map_or(Uuid::new_v4(), |u| u.into()),
+        };
+        if let Ok(c) = serde_json::to_string(&command) {
+            self.commands.push(c);
+        }
+        self.resource_types.push(resource.resource());
+        self
+    }
+
+    pub fn get<'a>(&'a mut self, resource_type: &str) -> &'a mut TodoistQueryBuilder {
+        self.resource_types.push(resource_type.to_string());
+        self
+    }
+
+    pub fn build(&self) -> TodoistQuery {
+        TodoistQuery {
+            token: self.token.clone(),
+            sync_token: self.sync_token.clone(),
+            resource_types: serde_json::to_string(&self.resource_types).unwrap(),
+            commands: match self.commands.len() {
+                0 => None,
+                _ => Some(serde_json::to_string(&self.commands).unwrap()),
+            },
         }
     }
 }

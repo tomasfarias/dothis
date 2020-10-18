@@ -4,7 +4,7 @@ use std::convert::TryFrom;
 
 use super::bool_int;
 use super::color::Color;
-use super::ToJson;
+use super::{CommandResource, Resource};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Project {
@@ -29,8 +29,14 @@ pub struct Project {
     pub team_inbox: Option<bool>,
 }
 
+impl Resource for Project {
+    fn resource(&self) -> String {
+        String::from("projects")
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
-pub struct NewProject {
+pub struct AddProject {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<Color>,
@@ -43,14 +49,21 @@ pub struct NewProject {
     pub is_favorite: Option<bool>,
 }
 
-impl NewProject {
+impl Resource for AddProject {
+    fn resource(&self) -> String {
+        String::from("projects")
+    }
+}
+
+impl AddProject {
     pub fn new(
         name: &str,
         color: Option<&str>,
+        parent_id: Option<u32>,
         child_order: Option<u32>,
         is_favorite: Option<bool>,
     ) -> Self {
-        NewProject {
+        AddProject {
             name: name.to_string(),
             color: match color {
                 Some(s) => match Color::try_from(s) {
@@ -59,15 +72,19 @@ impl NewProject {
                 },
                 None => None,
             },
-            parent_id: None,
+            parent_id: parent_id,
             child_order: child_order,
             is_favorite: is_favorite,
         }
     }
 }
 
-impl ToJson for NewProject {
+impl CommandResource for AddProject {
     fn to_json(&self) -> serde_json::Value {
         json!(self)
+    }
+
+    fn command(&self) -> String {
+        String::from("project_add")
     }
 }

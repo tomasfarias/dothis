@@ -26,14 +26,14 @@ fn main() {
     })
 }
 
-struct Dothis {
+struct Dothis<'a> {
     token: String,
-    command: String,
     resource: String,
-    name: String,
+    command: String,
+    args: ArgMatches<'a>,
 }
 
-impl Dothis {
+impl<'a> Dothis<'a> {
     fn new() -> Self {
         let matches = App::new("dothis")
             .version("1.0")
@@ -68,21 +68,49 @@ impl Dothis {
             .arg(
                 Arg::with_name("name")
                     .takes_value(true)
-                    .required_if("command", "add")
                     .help("resource name")
+                    .requires_ifs(&[
+                        ("command", "add"),
+                        ("resource", "projects"),
+                    ])
+            )
+            .arg(
+                Arg::with_name("color")
+                    .short("c")
+                    .takes_value(true)
+                    .help("resource color string")
+            )
+            .arg(
+                Arg::with_name("favorite")
+                    .long("favorite")
+                    .help("mark resource as favorite")
+            )
+            .arg(
+                Arg::with_name("content")
+                    .takes_value(true)
+                    .help("resource content")
+                    .requires_ifs(&[
+                        ("command", "add"),
+                        ("resource", "tasks")
+                    ])
             )
             .get_matches();
 
-        let token = matches.value_of("token").expect("Required argument");
-        let command = matches.value_of("command").expect("Argument with default");
-        let resource = matches.value_of("resource").expect("Required argument");
-        let name = matches.value_of("name").unwrap_or("default"); // Just to make it work now
+        let token = matches
+            .value_of("token")
+            .expect("argument token is required");
+        let command = matches
+            .value_of("command")
+            .expect("argument command is required");
+        let resource = matches
+            .value_of("resource")
+            .expect("argument resource is required");
 
         Dothis {
             token: token.to_string(),
             command: command.to_string(),
             resource: resource.to_string(),
-            name: name.to_string(),
+            args: matches,
         }
     }
 
@@ -98,8 +126,7 @@ impl Dothis {
                 Ok(())
             }
             "add" => {
-                let mut add =
-                    AddCommand::new(&self.token, resource_type, &self.name, None, None, None);
+                let mut add = AddCommand::new(&self.token, resource_type, self.args.clone());
 
                 add.execute()?;
                 Ok(())

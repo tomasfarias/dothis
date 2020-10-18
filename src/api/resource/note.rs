@@ -2,6 +2,7 @@ use serde::{self, Deserialize, Serialize};
 use std::collections::BTreeMap as Map;
 
 use super::bool_int;
+use super::Resource;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Note {
@@ -19,6 +20,12 @@ pub struct Note {
     pub is_deleted: bool,
     pub posted: String,
     pub reactions: Map<String, Vec<u32>>,
+}
+
+impl Resource for Note {
+    fn resource(&self) -> String {
+        String::from("notes")
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
